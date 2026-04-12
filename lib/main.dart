@@ -13,8 +13,89 @@ class GymApp extends StatelessWidget {
         brightness: Brightness.dark,
         primaryColor: Colors.orangeAccent,
         useMaterial3: true,
+          colorScheme: const ColorScheme.dark(
+            primary: Colors.orangeAccent,
+          secondary: Colors.orangeAccent,
+        ),
       ),
-      home: const MainScreen(),
+      home: const LoginScreen(),
+    );
+  }
+}
+
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+
+  void _handleLogin() {
+    // Basic logic: Check if fields aren't empty
+    if (_emailController.text.isNotEmpty && _passwordController.text.isNotEmpty) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const MainScreen()),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please enter email and password")),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Padding(
+        padding: const EdgeInsets.all(30.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.bolt, size: 80, color: Colors.orangeAccent),
+            const Text(
+              "SmartFit",
+              style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 40),
+            TextField(
+              controller: _emailController,
+              decoration: const InputDecoration(
+                labelText: "Email",
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.email),
+              ),
+            ),
+            const SizedBox(height: 20),
+            TextField(
+              controller: _passwordController,
+              obscureText: true,
+              decoration: const InputDecoration(
+                labelText: "Password",
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.lock),
+              ),
+            ),
+            const SizedBox(height: 30),
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.orangeAccent,
+                  foregroundColor: Colors.black,
+                ),
+                onPressed: _handleLogin,
+                child: const Text("LOGIN", style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -97,6 +178,14 @@ class GymLobby extends StatelessWidget {
             },
           ),
           ListTile(
+              title: const Text("Profile"),
+              leading: const Icon(Icons.person),
+              onTap: () {
+                Navigator.pop(context);
+                onNavigate(2);
+              },
+            ),
+          ListTile(
             title: const Text("About"), 
             leading: const Icon(Icons.info), 
             onTap: () {
@@ -104,6 +193,18 @@ class GymLobby extends StatelessWidget {
               onNavigate(3);          
             },
           ),
+            const Spacer(),
+            ListTile(
+              title: const Text("Logout", style: TextStyle(color: Colors.redAccent)),
+              leading: const Icon(Icons.logout, color: Colors.redAccent),
+              onTap: () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => const LoginScreen()),
+                );
+              },
+            ),
+            const SizedBox(height: 20),        
           ],
         ),
       ),
