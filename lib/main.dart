@@ -9,7 +9,7 @@ class GymApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
+        theme: ThemeData(
         brightness: Brightness.dark,
         primaryColor: Colors.orangeAccent,
         useMaterial3: true,
@@ -29,12 +29,6 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
 
-  static const List<Widget> _widgetOptions = <Widget>[
-    GymLobby(),
-    WorkoutTracker(),
-    ProfileScreen(),
-  ];
-
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
@@ -43,16 +37,21 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final List<Widget> _widgetOptions = <Widget>[
+      GymLobby(onNavigate: _onItemTapped), 
+      const WorkoutTracker(),
+      const ProfileScreen(),
+      const AboutScreen(), 
+    ];
     return Scaffold(
       body: _widgetOptions.elementAt(_selectedIndex),
       bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.fitness_center),
-            label: 'Workout',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.fitness_center), label: 'Workout'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+          BottomNavigationBarItem(icon: Icon(Icons.info), label: 'About'),
         ],
         currentIndex: _selectedIndex,
         selectedItemColor: Colors.orangeAccent,
@@ -63,7 +62,8 @@ class _MainScreenState extends State<MainScreen> {
 }
 
 class GymLobby extends StatelessWidget {
-  const GymLobby({super.key});
+  final Function(int) onNavigate; 
+  const GymLobby({super.key, required this.onNavigate});
 
   @override
   Widget build(BuildContext context) {
@@ -80,12 +80,30 @@ class GymLobby extends StatelessWidget {
         child: Column(
           children: [
             const DrawerHeader(
-              decoration: BoxDecoration(color: Colors.orangeAccent),
-              child: Center(child: Text("Menu")),
-            ),
-            ...["Home", "Workout", "About"].map(
-              (t) => ListTile(title: Text(t), leading: const Icon(Icons.bolt)),
-            ),
+            decoration: BoxDecoration(color: Colors.orangeAccent), 
+            child: Center(child: Text("Menu", style: TextStyle(color: Colors.black, fontSize: 24)))
+          ),
+          ListTile(
+            title: const Text("Home"), 
+            leading: const Icon(Icons.home), 
+            onTap: () => Navigator.pop(context),
+          ),
+          ListTile(
+            title: const Text("Workout"), 
+            leading: const Icon(Icons.fitness_center), 
+            onTap: () {
+              Navigator.pop(context); 
+              onNavigate(1);          
+            },
+          ),
+          ListTile(
+            title: const Text("About"), 
+            leading: const Icon(Icons.info), 
+            onTap: () {
+              Navigator.pop(context); 
+              onNavigate(3);          
+            },
+          ),
           ],
         ),
       ),
@@ -103,10 +121,10 @@ class GymLobby extends StatelessWidget {
           ),
           Expanded(
             child: GridView.count(
-              crossAxisCount: 2,
-              padding: const EdgeInsets.all(20),
-              crossAxisSpacing: 10,
-              mainAxisSpacing: 10,
+            crossAxisCount: 2, 
+            padding: const EdgeInsets.all(20), 
+            crossAxisSpacing: 10, 
+            mainAxisSpacing: 10,
               children: types.entries
                   .map(
                     (e) => Card(
@@ -152,10 +170,7 @@ class _WorkoutTrackerState extends State<WorkoutTracker> {
   void _logSet() {
     setState(() => _sets++);
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text("Set Recorded!"),
-        duration: Duration(milliseconds: 500),
-      ),
+      const SnackBar(content: Text("Set Recorded!"), duration: Duration(milliseconds: 500))
     );
   }
 
@@ -167,9 +182,7 @@ class _WorkoutTrackerState extends State<WorkoutTracker> {
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            LinearProgressIndicator(
-              value: _sets / 5,
-              color: Colors.orangeAccent,
+           LinearProgressIndicator(value: (_sets / 5).clamp(0.0, 1.0), color: Colors.orangeAccent),
             ),
             Text("$_sets / 5 sets", style: const TextStyle(fontSize: 20)),
             const Spacer(),
@@ -199,6 +212,27 @@ class _WorkoutTrackerState extends State<WorkoutTracker> {
             ),
             const SizedBox(height: 20),
             ElevatedButton(onPressed: _logSet, child: const Text("LOG SET")),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class AboutScreen extends StatelessWidget {
+  const AboutScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text("About SmartFit")),
+      body: const Padding(
+        padding: EdgeInsets.all(20),
+        child: Column(
+          children: [
+            Text("Welcome to SmartFit!", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+            SizedBox(height: 10),
+            Text("This app helps you track your bench press sets and manage your gym routine easily."),
           ],
         ),
       ),
