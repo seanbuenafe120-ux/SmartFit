@@ -146,18 +146,106 @@ class GymLobby extends StatelessWidget {
   }
 }
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _ageController = TextEditingController();
+  final TextEditingController _weightController = TextEditingController();
+
+  void _saveProfile() {
+    String name = _nameController.text;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Profile updated for $name!"),
+        backgroundColor: Colors.orangeAccent,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Profile")),
-      body: const Center(child: Text("Profile Screen")),
+      appBar: AppBar(title: const Text("Profile"), centerTitle: true),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          children: [
+            const CircleAvatar(
+              radius: 50,
+              backgroundColor: Colors.orangeAccent,
+              child: Icon(Icons.person, size: 50, color: Colors.black),
+            ),
+            const SizedBox(height: 30),
+            TextField(
+              controller: _nameController,
+              decoration: const InputDecoration(
+                labelText: "Full Name",
+                prefixIcon: Icon(Icons.badge, color: Colors.orangeAccent),
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _ageController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: "Age",
+                      prefixIcon: Icon(Icons.cake, color: Colors.orangeAccent),
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 20),
+                Expanded(
+                  child: TextField(
+                    controller: _weightController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: "Weight (kg)",
+                      prefixIcon: Icon(Icons.monitor_weight, color: Colors.orangeAccent),
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 40),
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.orangeAccent,
+                  foregroundColor: Colors.black,
+                ),
+                onPressed: _saveProfile,
+                child: const Text("SAVE PROFILE",
+                    style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
-}
 
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _ageController.dispose();
+    _weightController.dispose();
+    super.dispose();
+  }
+}
 class WorkoutTracker extends StatefulWidget {
   const WorkoutTracker({super.key});
   @override
