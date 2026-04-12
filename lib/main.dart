@@ -183,7 +183,6 @@ class _WorkoutTrackerState extends State<WorkoutTracker> {
         child: Column(
           children: [
            LinearProgressIndicator(value: (_sets / 5).clamp(0.0, 1.0), color: Colors.orangeAccent),
-            ),
             Text("$_sets / 5 sets", style: const TextStyle(fontSize: 20)),
             const Spacer(),
             Text(
