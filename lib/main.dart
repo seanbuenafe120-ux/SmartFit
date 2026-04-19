@@ -349,59 +349,111 @@ class _ProfileScreenState extends State<ProfileScreen> {
 }
 class WorkoutTracker extends StatefulWidget {
   const WorkoutTracker({super.key});
+  
   @override
   State<WorkoutTracker> createState() => _WorkoutTrackerState();
 }
 
 class _WorkoutTrackerState extends State<WorkoutTracker> {
-  int _sets = 0, _weight = 100;
+ final List<Map<String, dynamic>> _workouts = [
+    {"name": "Bench Press", "sets": 3, "weight": 135},
+    {"name": "Squats", "sets": 4, "weight": 225},
+  ];
 
-  void _logSet() {
-    setState(() => _sets++);
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Set Recorded!"), duration: Duration(milliseconds: 500))
+  final _nameController = TextEditingController();
+
+  void _addNewWorkout() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Add Exercise"),
+        content: TextField(
+          controller: _nameController,
+          decoration: const InputDecoration(hintText: "Exercise Name (e.g. Deadlift)"),
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel"),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (_nameController.text.isNotEmpty) {
+                setState(() {
+                  _workouts.add({
+                    "name": _nameController.text,
+                    "sets": 0,
+                    "weight": 0,
+                  });
+                });
+                _nameController.clear();
+                Navigator.pop(context);
+              }
+            },
+            child: const Text("Add"),
+          ),
+        ],
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Bench Press")),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-           LinearProgressIndicator(value: (_sets / 5).clamp(0.0, 1.0), color: Colors.orangeAccent),
-            Text("$_sets / 5 sets", style: const TextStyle(fontSize: 20)),
-            const Spacer(),
-            Text(
-              '$_sets',
-              style: const TextStyle(
-                fontSize: 80,
-                fontWeight: FontWeight.bold,
-                color: Colors.orangeAccent,
-              ),
+           appBar: AppBar(
+        title: const Text("My Workouts"),
+        actions: [
+          IconButton(onPressed: _addNewWorkout, icon: const Icon(Icons.add))
+        ],
+      ),
+      body: _workouts.isEmpty
+          ? const Center(child: Text("No workouts added yet!"))
+          : ListView.builder(
+              itemCount: _workouts.length,
+              padding: const EdgeInsets.all(10),
+              itemBuilder: (context, index) {
+                final item = _workouts[index];
+                return Card(
+                  margin: const EdgeInsets.only(bottom: 15),
+                  child: ListTile(
+                    leading: const CircleAvatar(
+                      backgroundColor: Colors.orangeAccent,
+                      child: Icon(Icons.fitness_center, color: Colors.black),
+                    ),
+                    title: Text(item['name'],
+                        style: const TextStyle(fontWeight: FontWeight.bold)),
+                    subtitle: Text(
+                        "${item['sets']} sets • ${item['weight']} lbs"),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.add_circle_outline,
+                              color: Colors.orangeAccent),
+                          onPressed: () {
+                            setState(
+                                () => _workouts[index]['sets']++);
+                          },
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.delete_outline,
+                              color: Colors.redAccent),
+                          onPressed: () {
+                            setState(
+                                () => _workouts.removeAt(index));
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
             ),
-            const Text("SETS COMPLETED"),
-            const Spacer(),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                IconButton(
-                  onPressed: () => setState(() => _weight -= 5),
-                  icon: const Icon(Icons.remove_circle),
-                ),
-                Text("$_weight lbs", style: const TextStyle(fontSize: 24)),
-                IconButton(
-                  onPressed: () => setState(() => _weight += 5),
-                  icon: const Icon(Icons.add_circle),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(onPressed: _logSet, child: const Text("LOG SET")),
-          ],
-        ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _addNewWorkout,
+        backgroundColor: Colors.orangeAccent,
+        child: const Icon(Icons.add, color: Colors.black),
       ),
     );
   }
@@ -421,6 +473,8 @@ class AboutScreen extends StatelessWidget {
             Text("Welcome to SmartFit!", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
             SizedBox(height: 10),
             Text("This app helps you track your bench press sets and manage your gym routine easily."),
+            const Divider(height: 40),
+            Text("App Version: 1.0.0", style: TextStyle(color: Colors.grey)),
           ],
         ),
       ),
