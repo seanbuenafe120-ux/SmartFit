@@ -349,64 +349,112 @@ class _ProfileScreenState extends State<ProfileScreen> {
 }
 class WorkoutTracker extends StatefulWidget {
   const WorkoutTracker({super.key});
-  
+
   @override
   State<WorkoutTracker> createState() => _WorkoutTrackerState();
 }
 
 class _WorkoutTrackerState extends State<WorkoutTracker> {
- final List<Map<String, dynamic>> _workouts = [
-    {"name": "Bench Press", "sets": 3, "weight": 135},
-    {"name": "Squats", "sets": 4, "weight": 225},
-  ];
+  final List<Map<String, dynamic>> _workouts = [];
 
-  final _nameController = TextEditingController();
+  // Generic dialog used for both Adding and Editing
+  void _showWorkoutDialog({
+    required String title,
+    String? initialName,
+    String? initialSets,
+    String? initialReps,
+    String? initialWeight,
+    bool showNameField = true,
+    required void Function(String name, int sets, int reps, double? weight) onConfirm,
+  }) {
+    final nameController = TextEditingController(text: initialName);
+    final setsController = TextEditingController(text: initialSets);
+    final repsController = TextEditingController(text: initialReps);
+    final weightController = TextEditingController(text: initialWeight);
 
-  void _addNewWorkout() {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text("Add Exercise"),
-        content: TextField(
-          controller: _nameController,
-          decoration: const InputDecoration(hintText: "Exercise Name (e.g. Deadlift)"),
-          autofocus: true,
+        title: Text(title),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (showNameField)
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(labelText: "Exercise Name (e.g. Yoga)"),
+                autofocus: true,
+              ),
+            TextField(controller: setsController, decoration: const InputDecoration(labelText: "Sets"), keyboardType: TextInputType.number),
+            TextField(controller: repsController, decoration: const InputDecoration(labelText: "Reps"), keyboardType: TextInputType.number),
+            TextField(controller: weightController, decoration: const InputDecoration(labelText: "Weight (Optional)"), keyboardType: TextInputType.number),
+          ],
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Cancel"),
-          ),
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel")),
           ElevatedButton(
             onPressed: () {
-              if (_nameController.text.isNotEmpty) {
-                setState(() {
-                  _workouts.add({
-                    "name": _nameController.text,
-                    "sets": 0,
-                    "weight": 0,
-                  });
-                });
-                _nameController.clear();
+              if (setsController.text.isNotEmpty && repsController.text.isNotEmpty) {
+                final weight = double.tryParse(weightController.text);
+                onConfirm(
+                  nameController.text,
+                  int.tryParse(setsController.text) ?? 0,
+                  int.tryParse(repsController.text) ?? 0,
+                  weight,
+                );
                 Navigator.pop(context);
               }
             },
-            child: const Text("Add"),
+            child: const Text("Confirm"),
           ),
         ],
       ),
     );
   }
 
+  void _showAddWorkoutDialog() {
+    _showWorkoutDialog(
+      title: "Add Exercise",
+      showNameField: true,
+      onConfirm: (name, sets, reps, weight) {
+        setState(() {
+          _workouts.add({
+            "name": name,
+            "sets": sets,
+            "reps": reps,
+            "weight": weight,
+          });
+        });
+      },
+    );
+  }
+
+  void _showEditWorkoutDialog(int index) {
+    final workout = _workouts[index];
+    _showWorkoutDialog(
+      title: "Edit ${workout['name']}",
+      initialName: workout['name'],
+      initialSets: workout['sets'].toString(),
+      initialReps: workout['reps'].toString(),
+      initialWeight: workout['weight']?.toString(),
+      showNameField: false,
+      onConfirm: (name, sets, reps, weight) {
+        setState(() {
+          _workouts[index] = {
+            "name": workout['name'],
+            "sets": sets,
+            "reps": reps,
+            "weight": weight,
+          };
+        });
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-           appBar: AppBar(
-        title: const Text("My Workouts"),
-        actions: [
-          IconButton(onPressed: _addNewWorkout, icon: const Icon(Icons.add))
-        ],
-      ),
+      appBar: AppBar(title: const Text("My Workouts")),
       body: _workouts.isEmpty
           ? const Center(child: Text("No workouts added yet!"))
           : ListView.builder(
@@ -417,32 +465,30 @@ class _WorkoutTrackerState extends State<WorkoutTracker> {
                 return Card(
                   margin: const EdgeInsets.only(bottom: 15),
                   child: ListTile(
+                    onTap: () => _showEditWorkoutDialog(index),
                     leading: const CircleAvatar(
                       backgroundColor: Colors.orangeAccent,
                       child: Icon(Icons.fitness_center, color: Colors.black),
                     ),
-                    title: Text(item['name'],
-                        style: const TextStyle(fontWeight: FontWeight.bold)),
+                    title: Text(item['name'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
                     subtitle: Text(
-                        "${item['sets']} sets • ${item['weight']} lbs"),
+                      "Sets: ${item['sets']} • Reps: ${item['reps']}${item['weight'] != null ? ' • Weight: ${item['weight']} lbs' : ''}",
+                      style: const TextStyle(fontSize: 14),
+                    ),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.add_circle_outline,
-                              color: Colors.orangeAccent),
+                          icon: const Icon(Icons.check_circle, color: Colors.orangeAccent),
                           onPressed: () {
-                            setState(
-                                () => _workouts[index]['sets']++);
+                            setState(() {
+                              if (item['sets'] > 0) _workouts[index]['sets']--;
+                            });
                           },
                         ),
                         IconButton(
-                          icon: const Icon(Icons.delete_outline,
-                              color: Colors.redAccent),
-                          onPressed: () {
-                            setState(
-                                () => _workouts.removeAt(index));
-                          },
+                          icon: const Icon(Icons.delete, color: Colors.redAccent),
+                          onPressed: () => setState(() => _workouts.removeAt(index)),
                         ),
                       ],
                     ),
@@ -451,7 +497,7 @@ class _WorkoutTrackerState extends State<WorkoutTracker> {
               },
             ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _addNewWorkout,
+        onPressed: _showAddWorkoutDialog,
         backgroundColor: Colors.orangeAccent,
         child: const Icon(Icons.add, color: Colors.black),
       ),
