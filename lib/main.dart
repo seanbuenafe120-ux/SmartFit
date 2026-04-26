@@ -357,7 +357,7 @@ class WorkoutTracker extends StatefulWidget {
 class _WorkoutTrackerState extends State<WorkoutTracker> {
   final List<Map<String, dynamic>> _workouts = [];
 
-  // Generic dialog used for both Adding and Editing
+
   void _showWorkoutDialog({
     required String title,
     String? initialName,
@@ -475,27 +475,39 @@ class _WorkoutTrackerState extends State<WorkoutTracker> {
                       "Sets: ${item['sets']} • Reps: ${item['reps']}${item['weight'] != null ? ' • Weight: ${item['weight']} lbs' : ''}",
                       style: const TextStyle(fontSize: 14),
                     ),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.check_circle, color: Colors.orangeAccent),
-                          onPressed: () {
-                            setState(() {
-                              if (item['sets'] > 0) _workouts[index]['sets']--;
-                            });
-                          },
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.delete, color: Colors.redAccent),
-                          onPressed: () => setState(() => _workouts.removeAt(index)),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
+                   trailing: Row(
+  mainAxisSize: MainAxisSize.min,
+  children: [
+    IconButton(
+      icon: const Icon(Icons.add_circle, color: Colors.green),
+      onPressed: () {
+        setState(() {
+          _workouts[index]['sets']++;
+        });
+      },
+    ),
+    IconButton(
+      icon: const Icon(Icons.remove_circle, color: Colors.orangeAccent),
+      onPressed: () {
+        setState(() {
+          if (_workouts[index]['sets'] > 1) {
+            _workouts[index]['sets']--;
+          } else {
+            _workouts.removeAt(index);
+          }
+        });
+      },
+    ),
+    IconButton(
+      icon: const Icon(Icons.delete, color: Colors.redAccent),
+      onPressed: () => setState(() => _workouts.removeAt(index)),
+    ),
+  ],
+),
+),
+);
+},
+),
       floatingActionButton: FloatingActionButton(
         onPressed: _showAddWorkoutDialog,
         backgroundColor: Colors.orangeAccent,
